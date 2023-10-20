@@ -115,3 +115,22 @@ server.post("/patient", function (req, res, next) {
       return next(new Error(JSON.stringify(error.errors)));
     });
 });
+
+// Delete patient with the given id
+server.del("/patient/:id", function (req, res, next) {
+  // Delete the user in db
+  PatientModel.findOneAndDelete({ _id: req.params.id })
+    .then((data) => {
+      console.log("deleted user: " + data);
+      if (data) {
+        res.send(200, "Deleted");
+      } else {
+        res.send(404, "User not found");
+      }
+      return next();
+    })
+    .catch(() => {
+      console.log("error: " + error);
+      return next(new Error(JSON.stringify(error.errors)));
+    });
+});
