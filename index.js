@@ -1,8 +1,9 @@
 const SERVER = "patientclinic-api";
-const PORT = 5000;
+const PORT = 3000;
 const HOST = "127.0.0.1";
 
 const mongoose = require("mongoose");
+const express = require("express");
 const username = "zenith";
 const password = "zenith123";
 const dbname = "patient_group4db";
@@ -20,13 +21,15 @@ db.once("open", () => {
   console.log("!!!! Connected to db: " + uristring);
 });
 
-const userSchema = new mongoose.Schema({
+const PatientSchema = new mongoose.Schema({
   name: String,
+  email: String,
+  DOB: String,
   age: String,
 });
 // Compiles the schema into a model, opening (or creating, if
 // nonexistent) the 'User' collection in the MongoDB database
-let UsersModel = mongoose.model("Users", userSchema);
+let PatientModel = mongoose.model("Patient", PatientSchema);
 
 let errors = require("restify-errors");
 let restify = require("restify");
@@ -49,4 +52,66 @@ server.listen(PORT, HOST, function () {
       );
     });
   }
+});
+
+server.use(restify.plugins.fullResponse());
+server.use(restify.plugins.bodyParser());
+
+// Get all patient in the system
+server.get("/patient", function (req, res, next) {
+  // Find every entity in db
+  PatientModel.find({})
+    .then((data) => {
+      // Return all of the users in the system
+      res.send(data);
+      return next();
+    })
+    .catch((error) => {
+      return next(new Error(JSON.stringify(error.errors)));
+    });
+});
+
+// Get all patient in the system
+server.get("/patient/:id", function (req, res, next) {
+  // Find a single user by their id in db
+  PatientModel.findOne({ _id: req.params.id })
+    .then((data) => {
+      if (data) {
+        // Send the user if no issues
+        res.send(data);
+      } else {
+        // Send 404 header if the user doesn't exist
+        res.send(404);
+      }
+      return next();
+    })
+    .catch((error) => {
+      console.log("error: " + error);
+      return next(new Error(JSON.stringify(error.errors)));
+    });
+});
+// Create a new patient
+server.post("/patient", function (req, res, next) {
+  // validation of manadatory fields
+  console.log(req.body);
+  let newPatient = new PatientModel({
+    name: req.body.name,
+    email: req.body.email,
+    DOB: req.body.dob,
+    age: req.body.age,
+  });
+
+  // Create the user and save to db
+  newPatient
+    .save()
+    .then((data) => {
+      console.log("saved user: " + data);
+      // Send the user if no issues
+      res.send(201, data);
+      return next();
+    })
+    .catch((error) => {
+      console.log("error: " + error);
+      return next(new Error(JSON.stringify(error.errors)));
+    });
 });
