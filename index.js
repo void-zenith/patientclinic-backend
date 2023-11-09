@@ -203,3 +203,20 @@ server.post("/record", (req, res, next) => {
     throw error;
   }
 });
+
+//get record
+server.get("/record", (req, res, next) => {
+  try {
+    RecordModel.find({})
+      .then((data) => {
+        // Return all of the users in the system
+        res.send(data);
+        return next();
+      })
+      .catch((error) => {
+        return next(new Error(JSON.stringify(error.errors)));
+      });
+  } catch (error) {
+    throw error;
+  }
+});
