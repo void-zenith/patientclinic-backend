@@ -157,3 +157,49 @@ server.del("/patient/:id", function (req, res, next) {
     throw error;
   }
 });
+
+// create a record
+server.post("/record", (req, res, next) => {
+  try {
+    // let data = JSON.parse(req.body);
+    let data = req.body;
+    let newRecord = new RecordModel({
+      recordTitle: data.recordTitle,
+      recordOf: data.patientId,
+      date: data.recordDate,
+      bloodOxygenLevel: data.bloodOxygenLevel,
+      respiratoryRate: data.respiratoryRate,
+      bloodPressure: data.bloodPressure,
+      heartbeatRate: data.heartbeatRate,
+      recordSummary: data.recordSummary,
+    });
+    newRecord
+      .save()
+      .then((val) => {
+        const foundPatient = PatientModel.findByIdAndUpdate(
+          { _id: data.patientId },
+          { $push: { records: val } },
+          { new: true }
+        ).then((res) => {
+          console.log(res);
+        });
+        console.log(foundPatient);
+        if (foundPatient) {
+          res.send(200, {
+            message: "Record Inserted Successfully",
+            resss: "foundPatient",
+          });
+        } else {
+          res.send(404, {
+            message: "Patient not found",
+          });
+        }
+      })
+      .catch((err) => {
+        console.log("error: " + err);
+        return next(new Error(JSON.stringify(err.errors)));
+      });
+  } catch (error) {
+    throw error;
+  }
+});
