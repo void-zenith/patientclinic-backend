@@ -244,3 +244,24 @@ server.get("/record/:id", (req, res, next) => {
     throw error;
   }
 });
+
+// Delete record with the given id
+server.del("/record/:id", function (req, res, next) {
+  try {
+    // Delete the user in db
+    RecordModel.findOneAndDelete({ _id: req.params.id })
+      .then((data) => {
+        if (data) {
+          res.send(200, "Deleted");
+        } else {
+          res.send(404, "Record not found");
+        }
+        return next();
+      })
+      .catch((error) => {
+        return next(new Error(JSON.stringify(error.errors)));
+      });
+  } catch (error) {
+    throw error;
+  }
+});
