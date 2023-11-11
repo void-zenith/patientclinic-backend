@@ -19,6 +19,7 @@ const RecordSchema = new mongoose.Schema({
   bloodOxygenLevel: String,
   heartbeatRate: String,
   recordSummary: String,
+  isCritical: Boolean,
   recordOf: { type: mongoose.Schema.Types.ObjectId, ref: "Patient" },
 });
 

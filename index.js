@@ -1,5 +1,5 @@
 const { PatientSchema, RecordSchema } = require("./Schema");
-
+const { checkForCritical } = require("./misc");
 const SERVER = "patientclinic-api";
 const PORT = 3000;
 const HOST = "127.0.0.1";
@@ -40,6 +40,7 @@ server.listen(PORT, HOST, function () {
   console.log("/patient/:id");
   console.log("/record");
   console.log("/record/:id");
+  console.log("/critical-patients");
 
   if (server.router && server.router.mounts) {
     server.router.mounts.forEach((route) => {
@@ -83,6 +84,61 @@ server.get("/patient/:id", function (req, res, next) {
         if (data) {
           // Send the user if no issues
           res.send(data);
+        } else {
+          // Send 404 header if the user doesn't exist
+          res.send(404);
+        }
+        return next();
+      })
+      .catch((error) => {
+        console.log("error: " + error);
+        return next(new Error(JSON.stringify(error.errors)));
+      });
+  } catch (error) {
+    throw error;
+  }
+});
+
+//get patient who are critical
+server.get("/critical-patient", (req, res, next) => {
+  try {
+    // Find a single user by their id in db
+    PatientModel.find({
+      isCritical: true,
+    })
+      .then((data) => {
+        if (data) {
+          // Send the user if no issues
+          res.send(data);
+        } else {
+          // Send 404 header if the user doesn't exist
+          res.send(404);
+        }
+        return next();
+      })
+      .catch((error) => {
+        console.log("error: " + error);
+        return next(new Error(JSON.stringify(error.errors)));
+      });
+  } catch (error) {
+    throw error;
+  }
+});
+
+//get patient who are not critical
+server.get("/home-data", (req, res, next) => {
+  try {
+    // Find a single user by their id in db
+    PatientModel.find({})
+      .limit(5)
+      .then((data) => {
+        if (data) {
+          // Send the user if no issues
+          res.send(200, {
+            allDataCount,
+            data,
+          });
+          next();
         } else {
           // Send 404 header if the user doesn't exist
           res.send(404);
@@ -165,6 +221,14 @@ server.post("/record", (req, res, next) => {
   try {
     let data = JSON.parse(req.body);
     // let data = req.body;
+    //checking for critical
+    const criticalStatus = checkForCritical(
+      data.diastolicBloodPressure,
+      data.systolicBloodPressure,
+      data.bloodOxygenLevel,
+      data.heartbeatRate,
+      data.respiratoryRate
+    );
     let newRecord = new RecordModel({
       recordTitle: data.recordTitle,
       recordOf: data.patientId,
@@ -175,21 +239,16 @@ server.post("/record", (req, res, next) => {
       diastolicBloodPressure: data.diastolicbloodPressure,
       heartbeatRate: data.heartbeatRate,
       recordSummary: data.recordSummary,
+      isCritical: criticalStatus,
     });
     newRecord
       .save()
       .then((val) => {
-        const foundPatient = PatientModel.findByIdAndUpdate(
+        PatientModel.findByIdAndUpdate(
           { _id: data.patientId },
           {
             $push: { records: val },
-            isCritical: checkForCritical(
-              val.diastolicBloodPressure,
-              val.systolicBloodPressure,
-              val.bloodOxygenLevel,
-              val.heartbeatRate,
-              val.respiratoryRate
-            ),
+            isCritical: criticalStatus,
           },
           { new: true }
         )
@@ -212,27 +271,6 @@ server.post("/record", (req, res, next) => {
   }
 });
 
-const checkForCritical = (
-  diastolicBloodPressure,
-  systolicBloodPressure,
-  bloodOxygenLevel,
-  hearbeatRate,
-  respiratoryRate
-) => {
-  if (
-    (systolicBloodPressure >= 90 && systolicBloodPressure <= 120) ||
-    (diastolicBloodPressure >= 60 && diastolicBloodPressure <= 80) ||
-    bloodOxygenLevel < 95 ||
-    hearbeatRate <= 60 ||
-    respiratoryRate <= 20
-  ) {
-    console.log("true");
-    return true;
-  } else {
-    console.log("false");
-    return false;
-  }
-};
 //get record
 server.get("/record", (req, res, next) => {
   try {
@@ -293,4 +331,9 @@ server.del("/record/:id", function (req, res, next) {
   } catch (error) {
     throw error;
   }
+});
+
+server.post("/create-patient", (req, res, next) => {
+  try {
+  } catch (error) {}
 });
