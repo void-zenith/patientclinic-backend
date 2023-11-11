@@ -5,13 +5,16 @@ const PatientSchema = new mongoose.Schema({
   lastName: String,
   email: String,
   address: String,
+  phone: String,
+  isCritical: Boolean,
   records: [{ type: mongoose.Schema.Types.ObjectId, ref: "Record" }],
 });
 
 const RecordSchema = new mongoose.Schema({
   date: String,
   recordTitle: String,
-  bloodPressure: String,
+  systolicBloodPressure: String,
+  diastolicBloodPressure: String,
   respiratoryRate: String,
   bloodOxygenLevel: String,
   heartbeatRate: String,

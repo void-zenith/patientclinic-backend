@@ -101,13 +101,15 @@ server.get("/patient/:id", function (req, res, next) {
 server.post("/patient", function (req, res, next) {
   try {
     // validation of manadatory fields
-    // let data = JSON.parse(req.body);
-    let data = req.body;
+    let data = JSON.parse(req.body);
+    // let data = req.body;
     let newPatient = new PatientModel({
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
       address: data.address,
+      phone: data.phone,
+      isCritical: false,
     });
 
     // Create the user and save to db
@@ -161,15 +163,16 @@ server.del("/patient/:id", function (req, res, next) {
 // create a record
 server.post("/record", (req, res, next) => {
   try {
-    // let data = JSON.parse(req.body);
-    let data = req.body;
+    let data = JSON.parse(req.body);
+    // let data = req.body;
     let newRecord = new RecordModel({
       recordTitle: data.recordTitle,
       recordOf: data.patientId,
-      date: data.recordDate,
+      date: data.date,
       bloodOxygenLevel: data.bloodOxygenLevel,
       respiratoryRate: data.respiratoryRate,
-      bloodPressure: data.bloodPressure,
+      systolicBloodPressure: data.systolicbloodPressure,
+      diastolicBloodPressure: data.diastolicbloodPressure,
       heartbeatRate: data.heartbeatRate,
       recordSummary: data.recordSummary,
     });
@@ -178,22 +181,27 @@ server.post("/record", (req, res, next) => {
       .then((val) => {
         const foundPatient = PatientModel.findByIdAndUpdate(
           { _id: data.patientId },
-          { $push: { records: val } },
+          {
+            $push: { records: val },
+            isCritical: checkForCritical(
+              val.diastolicBloodPressure,
+              val.systolicBloodPressure,
+              val.bloodOxygenLevel,
+              val.heartbeatRate,
+              val.respiratoryRate
+            ),
+          },
           { new: true }
-        ).then((res) => {
-          console.log(res);
-        });
-        console.log(foundPatient);
-        if (foundPatient) {
-          res.send(200, {
-            message: "Record Inserted Successfully",
-            resss: "foundPatient",
+        )
+          .then((res) => {
+            res.send(200, {
+              message: "Record Inserted Successfully",
+              resss: "foundPatient",
+            });
+          })
+          .catch((error) => {
+            return next(new Error(JSON.stringify(error.errors)));
           });
-        } else {
-          res.send(404, {
-            message: "Patient not found",
-          });
-        }
       })
       .catch((err) => {
         console.log("error: " + err);
@@ -204,6 +212,27 @@ server.post("/record", (req, res, next) => {
   }
 });
 
+const checkForCritical = (
+  diastolicBloodPressure,
+  systolicBloodPressure,
+  bloodOxygenLevel,
+  hearbeatRate,
+  respiratoryRate
+) => {
+  if (
+    (systolicBloodPressure >= 90 && systolicBloodPressure <= 120) ||
+    (diastolicBloodPressure >= 60 && diastolicBloodPressure <= 80) ||
+    bloodOxygenLevel < 95 ||
+    hearbeatRate <= 60 ||
+    respiratoryRate <= 20
+  ) {
+    console.log("true");
+    return true;
+  } else {
+    console.log("false");
+    return false;
+  }
+};
 //get record
 server.get("/record", (req, res, next) => {
   try {
