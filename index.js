@@ -135,7 +135,6 @@ server.get("/home-data", (req, res, next) => {
         if (data) {
           // Send the user if no issues
           res.send(200, {
-            allDataCount,
             data,
           });
           next();
@@ -195,19 +194,23 @@ server.post("/patient", function (req, res, next) {
 
 // Delete patient with the given id
 server.del("/patient/:id", function (req, res, next) {
+  const id = req.params.id;
   try {
     // Delete the user in db
-    PatientModel.findOneAndDelete({ _id: req.params.id })
+    PatientModel.findOneAndDelete({ _id: id })
       .then((data) => {
-        console.log("deleted user: " + data);
         if (data) {
-          res.send(200, "Deleted");
+          RecordModel.deleteMany({
+            recordOf: id,
+          }).then(() => {
+            res.send(200, "Deleted");
+            return next();
+          });
         } else {
           res.send(404, "User not found");
         }
-        return next();
       })
-      .catch(() => {
+      .catch((error) => {
         console.log("error: " + error);
         return next(new Error(JSON.stringify(error.errors)));
       });
@@ -252,10 +255,9 @@ server.post("/record", (req, res, next) => {
           },
           { new: true }
         )
-          .then((res) => {
+          .then(() => {
             res.send(200, {
               message: "Record Inserted Successfully",
-              resss: "foundPatient",
             });
           })
           .catch((error) => {
