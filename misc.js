@@ -15,17 +15,17 @@ const checkForCritical = (
 
   if (
     systolicBloodPressure <= 90 ||
-    systolicBloodPressure >= 1540 ||
+    systolicBloodPressure >= 140 ||
     diastolicBloodPressure <= 60 ||
     diastolicBloodPressure >= 91 ||
     bloodOxygenLevel < 95 ||
     hearbeatRate <= 60 ||
     respiratoryRate <= 19
   ) {
-    console.log("true");
+    console.log("true result");
     return true;
   } else {
-    console.log("false");
+    console.log("false result");
     return false;
   }
 };

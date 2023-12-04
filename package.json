@@ -4,7 +4,7 @@
   "description": "this is group 4 project for creating rest apu",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "zenith rajbhandari & abhiyan bhattarai",
   "license": "ISC",
@@ -14,5 +14,8 @@
     "mongoose": "^7.6.3",
     "restify": "^11.1.0",
     "restify-errors": "^8.0.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }

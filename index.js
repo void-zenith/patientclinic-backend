@@ -1,5 +1,10 @@
-const { PatientSchema, RecordSchema } = require("./Schema");
+const { PatientSchema, RecordSchema, UserSchema } = require("./Schema");
 const { checkForCritical } = require("./misc");
+const {
+  getAllPatient,
+  getPatientById,
+} = require("./Controller/PatientController");
+
 const SERVER = "patientclinic-api";
 const PORT = 3000;
 const HOST = "127.0.0.1";
@@ -25,6 +30,7 @@ db.once("open", () => {
 // nonexistent) the collection in the MongoDB database
 let PatientModel = mongoose.model("Patient", PatientSchema);
 let RecordModel = mongoose.model("Record", RecordSchema);
+let UserModel = mongoose.model("User", UserSchema);
 
 let errors = require("restify-errors");
 let restify = require("restify");
@@ -54,50 +60,14 @@ server.listen(PORT, HOST, function () {
 });
 
 server.use(restify.plugins.fullResponse());
+server.use(restify.plugins.queryParser());
 server.use(restify.plugins.bodyParser());
 
 // Get all patient in the system
-server.get("/patient", function (req, res, next) {
-  try {
-    // Find every entity in db
-    PatientModel.find({})
-      .then((data) => {
-        // Return all of the users in the system
-        res.send(data);
-        return next();
-      })
-      .catch((error) => {
-        return next(new Error(JSON.stringify(error.errors)));
-      });
-  } catch (error) {
-    throw error;
-  }
-});
+server.get("/patient", getAllPatient);
 
 // Get all patient in the system
-server.get("/patient/:id", function (req, res, next) {
-  try {
-    // Find a single user by their id in db
-    PatientModel.findOne({ _id: req.params.id })
-      .populate("records")
-      .then((data) => {
-        if (data) {
-          // Send the user if no issues
-          res.send(data);
-        } else {
-          // Send 404 header if the user doesn't exist
-          res.send(404);
-        }
-        return next();
-      })
-      .catch((error) => {
-        console.log("error: " + error);
-        return next(new Error(JSON.stringify(error.errors)));
-      });
-  } catch (error) {
-    throw error;
-  }
-});
+server.get("/patient/:id", getPatientById);
 
 //get patient who are critical
 server.get("/critical-patient", (req, res, next) => {
@@ -125,33 +95,6 @@ server.get("/critical-patient", (req, res, next) => {
   }
 });
 
-//get patient who are not critical
-server.get("/home-data", (req, res, next) => {
-  try {
-    // Find a single user by their id in db
-    PatientModel.find({})
-      .limit(5)
-      .then((data) => {
-        if (data) {
-          // Send the user if no issues
-          res.send(200, {
-            data,
-          });
-          next();
-        } else {
-          // Send 404 header if the user doesn't exist
-          res.send(404);
-        }
-        return next();
-      })
-      .catch((error) => {
-        console.log("error: " + error);
-        return next(new Error(JSON.stringify(error.errors)));
-      });
-  } catch (error) {
-    throw error;
-  }
-});
 // Create a new patient
 server.post("/patient", function (req, res, next) {
   try {
@@ -235,6 +178,7 @@ server.post("/record", (req, res, next) => {
     let newRecord = new RecordModel({
       recordTitle: data.recordTitle,
       recordOf: data.patientId,
+      recordBy: data.userId,
       date: data.date,
       bloodOxygenLevel: data.bloodOxygenLevel,
       respiratoryRate: data.respiratoryRate,
@@ -256,9 +200,22 @@ server.post("/record", (req, res, next) => {
           { new: true }
         )
           .then(() => {
-            res.send(200, {
-              message: "Record Inserted Successfully",
-            });
+            UserModel.findByIdAndUpdate(
+              { _id: data.userId },
+              {
+                $push: { records: val },
+                isCritical: criticalStatus,
+              },
+              { new: true }
+            )
+              .then(() => {
+                res.send(200, {
+                  message: "Record Inserted Successfully",
+                });
+              })
+              .catch((error) => {
+                return next(new Error(JSON.stringify(error.errors)));
+              });
           })
           .catch((error) => {
             return next(new Error(JSON.stringify(error.errors)));
@@ -335,7 +292,139 @@ server.del("/record/:id", function (req, res, next) {
   }
 });
 
-server.post("/create-patient", (req, res, next) => {
+///create a user
+server.post("/user", (req, res, next) => {
   try {
-  } catch (error) {}
+    let data = JSON.parse(req.body);
+    // let data = req.body;
+    //checking for critical
+
+    let newUser = new UserModel({
+      username: data.username,
+      password: data.password,
+      userType: data.userType,
+    });
+    newUser
+      .save()
+      .then((data) => {
+        // Send the user if no issues
+        if (data) {
+          res.send(200, {
+            message: "User Created Successfully",
+            data: data,
+          });
+        } else {
+          res.send(404, "Error");
+        }
+
+        return next();
+      })
+      .catch((error) => {
+        console.log("error: " + error);
+        return next(new Error(JSON.stringify(error.errors)));
+      });
+  } catch (error) {
+    throw error;
+  }
+});
+
+//get record
+server.get("/user", (req, res, next) => {
+  try {
+    UserModel.find({})
+      .then((data) => {
+        // Return all of the users in the system
+        res.send(data);
+        return next();
+      })
+      .catch((error) => {
+        return next(new Error(JSON.stringify(error.errors)));
+      });
+  } catch (error) {
+    throw error;
+  }
+});
+
+//get single record
+server.get("/user/:id", (req, res, next) => {
+  try {
+    // Find a single user by their id in db
+    UserModel.findOne({ _id: req.params.id })
+      .then((data) => {
+        if (data) {
+          // Send the user if no issues
+          res.send(data);
+        } else {
+          // Send 404 header if the user doesn't exist
+          res.send(404);
+        }
+        return next();
+      })
+      .catch((error) => {
+        console.log("error: " + error);
+        return next(new Error(JSON.stringify(error.errors)));
+      });
+  } catch (error) {
+    throw error;
+  }
+});
+
+// Delete record with the given id
+server.del("/user/:id", function (req, res, next) {
+  try {
+    // Delete the user in db
+    UserModel.findOneAndDelete({ _id: req.params.id })
+      .then((data) => {
+        if (data) {
+          res.send(200, "Deleted");
+        } else {
+          res.send(404, "Record not found");
+        }
+        return next();
+      })
+      .catch((error) => {
+        return next(new Error(JSON.stringify(error.errors)));
+      });
+  } catch (error) {
+    throw error;
+  }
+});
+
+//login function
+server.post("/login", function (req, res, next) {
+  try {
+    let data = JSON.parse(req.body);
+    // let data = req.body;
+    const { username, password } = data;
+    console.log(username, password);
+    if (!username || !password) {
+      return res.send(400, {
+        message: "Please insert the data",
+      });
+    }
+
+    UserModel.findOne({
+      username: username,
+    })
+      .then((data) => {
+        if (data) {
+          console.log(data, "here");
+          res.send(200, {
+            data: data,
+            message: "User Logged In",
+          });
+        } else {
+          console.log(data, "here2");
+          res.send(404, {
+            message: "User not found.",
+          });
+        }
+        return next();
+      })
+      .catch((error) => {
+        return next(new Error(JSON.stringify(error.errors)));
+      });
+  } catch (error) {
+    throw error;
+  }
 });
