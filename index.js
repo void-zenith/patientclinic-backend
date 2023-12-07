@@ -46,7 +46,7 @@ server.listen(PORT, HOST, function () {
   console.log("/patient/:id");
   console.log("/record");
   console.log("/record/:id");
-  console.log("/critical-patients");
+  console.log("/critical-patient");
 
   if (server.router && server.router.mounts) {
     server.router.mounts.forEach((route) => {
