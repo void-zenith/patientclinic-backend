@@ -23,7 +23,6 @@ const getAllPatient = (req, res, next) => {
     throw error;
   }
 };
-r;
 
 const getPatientById = (req, res, next) => {
   try {

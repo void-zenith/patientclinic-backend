@@ -99,8 +99,8 @@ server.get("/critical-patient", (req, res, next) => {
 server.post("/patient", function (req, res, next) {
   try {
     // validation of manadatory fields
-    let data = JSON.parse(req.body);
-    // let data = req.body;
+    // let data = JSON.parse(req.body);
+    let data = req.body;
     let newPatient = new PatientModel({
       firstName: data.firstName,
       lastName: data.lastName,
@@ -165,8 +165,8 @@ server.del("/patient/:id", function (req, res, next) {
 // create a record
 server.post("/record", (req, res, next) => {
   try {
-    let data = JSON.parse(req.body);
-    // let data = req.body;
+    // let data = JSON.parse(req.body);
+    let data = req.body;
     //checking for critical
     const criticalStatus = checkForCritical(
       data.diastolicBloodPressure,
@@ -295,8 +295,8 @@ server.del("/record/:id", function (req, res, next) {
 ///create a user
 server.post("/user", (req, res, next) => {
   try {
-    let data = JSON.parse(req.body);
-    // let data = req.body;
+    // let data = JSON.parse(req.body);
+    let data = req.body;
     //checking for critical
 
     let newUser = new UserModel({
