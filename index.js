@@ -11,7 +11,7 @@ const HOST = "127.0.0.1";
 
 const mongoose = require("mongoose");
 const username = "zenith";
-const password = "zenith123";
+const password = "Zenith123";
 const dbname = "patient_group4db";
 
 // Atlas MongoDb connection string format
