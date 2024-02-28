@@ -10,7 +10,7 @@ const PORT = 3000;
 const HOST = "127.0.0.1";
 
 const mongoose = require("mongoose");
-const username = "zenith";
+const username = "zenithnew";
 const password = "Zenith123";
 const dbname = "patient_group4db";
 
