@@ -49,7 +49,7 @@ server.listen(PORT, HOST, function () {
   console.log("/critical-patient");
 
   if (server.router && server.router.mounts) {
-    server.router.mounts.forEach((route) => {
+    server.router.mount.forEach((route) => {
       console.log(
         `${route.spec.path} method: ${Object.keys(route.route.methods).join(
           ", "
