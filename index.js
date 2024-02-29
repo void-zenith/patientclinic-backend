@@ -6,7 +6,7 @@ const {
 } = require("./Controller/PatientController");
 
 const SERVER = "patientclinic-api";
-const PORT = 3000;
+const PORT = process.env.PORT || 4000;
 const HOST = "127.0.0.1";
 
 const mongoose = require("mongoose");
