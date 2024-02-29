@@ -41,16 +41,6 @@ let server = restify.createServer({ name: SERVER });
 server.listen(PORT, HOST, function () {
   //showing the initializaion in the terminal
   console.log(`Server ${server.name} listening at ${server.url}`);
-
-  if (server.router && server.router.mount) {
-    server.router.mount.forEach((route) => {
-      console.log(
-        `${route.spec.path} method: ${Object.keys(route.route.methods).join(
-          ", "
-        )}`
-      );
-    });
-  }
 });
 
 server.use(restify.plugins.fullResponse());
