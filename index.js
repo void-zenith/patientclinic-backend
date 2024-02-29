@@ -41,14 +41,8 @@ let server = restify.createServer({ name: SERVER });
 server.listen(PORT, HOST, function () {
   //showing the initializaion in the terminal
   console.log(`Server ${server.name} listening at ${server.url}`);
-  console.log("All the available ports:");
-  console.log("/patient");
-  console.log("/patient/:id");
-  console.log("/record");
-  console.log("/record/:id");
-  console.log("/critical-patient");
 
-  if (server.router && server.router.mounts) {
+  if (server.router && server.router.mount) {
     server.router.mount.forEach((route) => {
       console.log(
         `${route.spec.path} method: ${Object.keys(route.route.methods).join(
