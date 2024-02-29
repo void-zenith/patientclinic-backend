@@ -70,30 +70,30 @@ server.get("/patient", getAllPatient);
 server.get("/patient/:id", getPatientById);
 
 //get patient who are critical
-server.get("/critical-patient", (req, res, next) => {
-  try {
-    // Find a single user by their id in db
-    PatientModel.find({
-      isCritical: true,
-    })
-      .then((data) => {
-        if (data) {
-          // Send the user if no issues
-          res.send(data);
-        } else {
-          // Send 404 header if the user doesn't exist
-          res.send(404);
-        }
-        return next();
-      })
-      .catch((error) => {
-        console.log("error: " + error);
-        return next(new Error(JSON.stringify(error.errors)));
-      });
-  } catch (error) {
-    throw error;
-  }
-});
+// server.get("/critical-patient", (req, res, next) => {
+//   try {
+//     // Find a single user by their id in db
+//     PatientModel.find({
+//       isCritical: true,
+//     })
+//       .then((data) => {
+//         if (data) {
+//           // Send the user if no issues
+//           res.send(data);
+//         } else {
+//           // Send 404 header if the user doesn't exist
+//           res.send(404);
+//         }
+//         return next();
+//       })
+//       .catch((error) => {
+//         console.log("error: " + error);
+//         return next(new Error(JSON.stringify(error.errors)));
+//       });
+//   } catch (error) {
+//     throw error;
+//   }
+// });
 
 // Create a new patient
 server.post("/patient", function (req, res, next) {
